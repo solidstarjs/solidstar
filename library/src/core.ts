@@ -1,4 +1,4 @@
-import { apply, load, setAlias } from '../engine'
+import { apply, load, setAlias } from './engine'
 
 apply()
 
