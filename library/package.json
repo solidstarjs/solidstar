@@ -42,7 +42,7 @@
     }
   },
   "scripts": {
-    "build": "cp ../README.md . && tsc && pnpm build:main && pnpm build:core && pnpm build:aliased",
+    "build": "cp ../README.md . && pnpm build:main && pnpm build:core && pnpm build:aliased && tsc",
     "build:main": "esbuild src/index.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar.js",
     "build:core": "esbuild src/core.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar-core.js",
     "build:aliased": "esbuild src/aliased.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar-aliased.js",
