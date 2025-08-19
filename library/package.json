@@ -47,8 +47,8 @@
     "build:core": "esbuild src/core.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar-core.js",
     "build:aliased": "esbuild src/aliased.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar-aliased.js",
     "dev": "vite examples",
-    "bump": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "bump": "changeset version && pnpm build",
+    "release": "changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.6",
