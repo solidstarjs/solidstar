@@ -1,17 +1,18 @@
 {
-  "name": "@starfederation/datastar",
-  "author": "Delaney Gillilan",
-  "description": "The hypermedia framework.",
-  "version": "1.0.0-RC.5",
+  "name": "solidstar",
+  "author": "Katja Lutz <opensource@katjalutz.ch>",
+  "description": "Datastar with SolidJS reactivity.",
+  "version": "0.0.0",
   "license": "MIT",
   "private": false,
+  "type": "module",
   "homepage": "https://data-star.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/starfederation/datastar.git"
+    "url": "git+https://github.com/solidstarjs/solidstar.git"
   },
   "bugs": {
-    "url": "https://github.com/starfederation/datastar/issues"
+    "url": "https://github.com/solidstarjs/solidstar/issues"
   },
   "files": [
     "dist"
@@ -23,6 +24,14 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
+    "./core": {
+      "import": "./dist/core.js",
+      "types": "./dist/core.d.ts"
+    },
+    "./aliased": {
+      "import": "./dist/aliased.js",
+      "types": "./dist/aliased.d.ts"
+    },
     "./plugins": {
       "import": "./dist/plugins/index.js",
       "types": "./dist/plugins/index.d.ts"
@@ -30,16 +39,29 @@
     "./types": {
       "import": "./dist/engine/types.js",
       "types": "./dist/engine/types.d.ts"
-    },
-    "./bundles/*": {
-      "import": "./dist/bundles/*.js",
-      "types": "./dist/bundles/*.d.ts"
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "cp ../README.md . && tsc && pnpm build:main && pnpm build:core && pnpm build:aliased",
+    "build:main": "esbuild src/index.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar.js",
+    "build:core": "esbuild src/core.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar-core.js",
+    "build:aliased": "esbuild src/aliased.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar-aliased.js",
+    "dev": "vite examples",
+    "bump": "changeset version",
+    "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
-    "typescript": "^5.6.3"
+    "@changesets/cli": "^2.29.6",
+    "@types/node": "^24.3.0",
+    "esbuild": "^0.25.9",
+    "solid-devtools": "^0.34.3",
+    "solid-element": "^1.9.1",
+    "terser": "^5.43.1",
+    "typescript": "^5.6.3",
+    "vite": "^7.1.2",
+    "vite-plugin-solid": "^2.11.8"
+  },
+  "peerDependencies": {
+    "solid-js": "^1.9"
   }
 }

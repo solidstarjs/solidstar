@@ -2,6 +2,7 @@
 .idea
 .task
 bundles/datastar-pro*
+library/README.md
 library/src/bundles/datastar-pro*
 library/src/plugins/pro
 node_modules
