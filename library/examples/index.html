@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <title>Solid App</title>
+    <script src="index.tsx" type="module"></script>
+  </head>
+  <body data-signals="{count: 0}">
+    <div>Datastar controlled:</div>
+    <input type="number" data-bind="count" /> <br />
+    <button data-text="$count" data-on-click="$count++"></button>
+
+    <div>Solid Web Component:</div>
+    <my-component count="1"></my-component>
+  </body>
+</html>
