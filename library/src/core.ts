@@ -1,5 +1,5 @@
-import { apply, load, setAlias } from './engine'
+import { apply, load, setAlias, signals } from './engine'
 
 apply()
 
-export { apply, load, setAlias }
+export { apply, load, setAlias, signals }

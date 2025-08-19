@@ -6,9 +6,7 @@ import { initErr, runtimeErr } from './errors'
 import type {
   ActionPlugins,
   AttributePlugin,
-  Computed,
   DatastarPlugin,
-  Effect,
   HTMLOrSVG,
   InitContext,
   JSONPatch,
@@ -17,567 +15,35 @@ import type {
   Paths,
   RuntimeContext,
   RuntimeExpressionFunction,
-  Signal,
   SignalFilterOptions,
 } from './types'
-import { DATASTAR_SIGNAL_PATCH_EVENT } from './types'
+import {
+  createSignal,
+  createMemo,
+  createEffect,
+  createRoot,
+  untrack,
+  batch,
+  getOwner,
+  runWithOwner,
+} from 'solid-js'
+import { createMutable } from 'solid-js/store'
+import type { EffectFunction } from 'solid-js'
 
-/**
- * Custom signals implementation based on Alien Signals
- */
+const owner = createRoot(getOwner)!
+owner.name = 'Solidstar'
 
-interface ReactiveNode {
-  deps_?: Link
-  depsTail_?: Link
-  subs_?: Link
-  subsTail_?: Link
-  flags_: ReactiveFlags
-}
-
-interface Link {
-  dep_: ReactiveNode
-  sub_: ReactiveNode
-  prevSub_?: Link
-  nextSub_?: Link
-  prevDep_?: Link
-  nextDep_?: Link
-}
-
-interface Stack<T> {
-  value_: T
-  prev_?: Stack<T>
-}
-
-enum ReactiveFlags {
-  None = 0,
-  Mutable = 1 << 0,
-  Watching = 1 << 1,
-  RecursedCheck = 1 << 2,
-  Recursed = 1 << 3,
-  Dirty = 1 << 4,
-  Pending = 1 << 5,
-}
-
-enum EffectFlags {
-  Queued = 1 << 6,
-}
-
-interface AlienEffect extends ReactiveNode {
-  fn_(): void
-}
-
-interface AlienComputed<T = any> extends ReactiveNode {
-  value_?: T
-  getter(previousValue?: T): T
-}
-
-interface AlienSignal<T = any> extends ReactiveNode {
-  previousValue: T
-  value_: T
-}
-
-const currentPatch: Paths = []
-const queuedEffects: (AlienEffect | undefined)[] = []
-let batchDepth = 0
-let notifyIndex = 0
-let queuedEffectsLength = 0
-let activeSub: ReactiveNode | undefined
-
-const startBatch = (): void => {
-  batchDepth++
-}
-
-const endBatch = (): void => {
-  if (!--batchDepth) {
-    flush()
-    dispatch()
-  }
-}
-
-const signal = <T>(initialValue?: T): Signal<T> => {
-  return signalOper.bind(0, {
-    previousValue: initialValue,
-    value_: initialValue,
-    flags_: 1 satisfies ReactiveFlags.Mutable,
-  }) as Signal<T>
-}
-
-const computedSymbol = Symbol('computed')
-const computed = <T>(getter: (previousValue?: T) => T): Computed<T> => {
-  const c = computedOper.bind(0, {
-    flags_: 17 as ReactiveFlags.Mutable | ReactiveFlags.Dirty,
-    getter,
-  }) as Computed<T>
-  // @ts-ignore
-  c[computedSymbol] = 1
-  return c
-}
-
-const effect = (fn: () => void): Effect => {
-  const e: AlienEffect = {
-    fn_: fn,
-    flags_: 2 satisfies ReactiveFlags.Watching,
-  }
-  if (activeSub) {
-    link(e, activeSub)
-  }
-  const prev = setCurrentSub(e)
-  startBatch()
-  try {
-    e.fn_()
-  } finally {
-    endBatch()
-    setCurrentSub(prev)
-  }
-  return effectOper.bind(0, e)
-}
-
-const peek = <T>(fn: () => T): T => {
-  const prev = setCurrentSub(undefined)
-  try {
-    return fn()
-  } finally {
-    setCurrentSub(prev)
-  }
-}
-
-const flush = () => {
-  while (notifyIndex < queuedEffectsLength) {
-    const effect = queuedEffects[notifyIndex]!
-    queuedEffects[notifyIndex++] = undefined
-    run(effect, (effect.flags_ &= ~EffectFlags.Queued))
-  }
-  notifyIndex = 0
-  queuedEffectsLength = 0
-}
-
-const update = (signal: AlienSignal | AlienComputed): boolean => {
-  if ('getter' in signal) {
-    return updateComputed(signal)
-  }
-  return updateSignal(signal, signal.value_)
-}
-
-const setCurrentSub = (sub?: ReactiveNode): ReactiveNode | undefined => {
-  const prevSub = activeSub
-  activeSub = sub
-  return prevSub
-}
-
-const updateComputed = (c: AlienComputed): boolean => {
-  const prevSub = setCurrentSub(c)
-  startTracking(c)
-  try {
-    const oldValue = c.value_
-    return oldValue !== (c.value_ = c.getter(oldValue))
-  } finally {
-    setCurrentSub(prevSub)
-    endTracking(c)
-  }
-}
-
-const updateSignal = (s: AlienSignal, value: any): boolean => {
-  s.flags_ = 1 satisfies ReactiveFlags.Mutable
-  return s.previousValue !== (s.previousValue = value)
-}
-
-const notify = (e: AlienEffect): void => {
-  const flags = e.flags_
-  if (!(flags & EffectFlags.Queued)) {
-    e.flags_ = flags | EffectFlags.Queued
-    const subs = e.subs_
-    if (subs) {
-      notify(subs.sub_ as AlienEffect)
-    } else {
-      queuedEffects[queuedEffectsLength++] = e
-    }
-  }
-}
-
-const run = (e: AlienEffect, flags: ReactiveFlags): void => {
-  if (
-    flags & (16 satisfies ReactiveFlags.Dirty) ||
-    (flags & (32 satisfies ReactiveFlags.Pending) && checkDirty(e.deps_!, e))
-  ) {
-    const prev = setCurrentSub(e)
-    startTracking(e)
-    startBatch()
-    try {
-      e.fn_()
-    } finally {
-      endBatch()
-      setCurrentSub(prev)
-      endTracking(e)
-    }
-    return
-  }
-  if (flags & (32 satisfies ReactiveFlags.Pending)) {
-    e.flags_ = flags & ~(32 satisfies ReactiveFlags.Pending)
-  }
-  let link = e.deps_
-  while (link) {
-    const dep = link.dep_
-    const depFlags = dep.flags_
-    if (depFlags & EffectFlags.Queued) {
-      run(dep as AlienEffect, (dep.flags_ = depFlags & ~EffectFlags.Queued))
-    }
-    link = link.nextDep_
-  }
-}
-
-const computedOper = <T>(c: AlienComputed<T>): T => {
-  const flags = c.flags_
-  if (
-    flags & (16 satisfies ReactiveFlags.Dirty) ||
-    (flags & (32 satisfies ReactiveFlags.Pending) && checkDirty(c.deps_!, c))
-  ) {
-    if (updateComputed(c)) {
-      const subs = c.subs_
-      if (subs) {
-        shallowPropagate(subs)
-      }
-    }
-  } else if (flags & (32 satisfies ReactiveFlags.Pending)) {
-    c.flags_ = flags & ~(32 satisfies ReactiveFlags.Pending)
-  }
-  if (activeSub) {
-    link(c, activeSub)
-  }
-  return c.value_!
-}
-
-const signalOper = <T>(s: AlienSignal<T>, ...value: [T]): T | boolean => {
-  if (value.length) {
-    const newValue = value[0]
-    if (s.value_ !== (s.value_ = newValue)) {
-      s.flags_ = 17 as ReactiveFlags.Mutable | ReactiveFlags.Dirty
-      const subs = s.subs_
-      if (subs) {
-        propagate(subs)
-        if (!batchDepth) {
-          flush()
-        }
-      }
-      return true
-    }
-    return false
-  }
-  const currentValue = s.value_
-  if (s.flags_ & (16 satisfies ReactiveFlags.Dirty)) {
-    if (updateSignal(s, currentValue)) {
-      const subs_ = s.subs_
-      if (subs_) {
-        shallowPropagate(subs_)
-      }
-    }
-  }
-  if (activeSub) {
-    link(s, activeSub)
-  }
-  return currentValue
-}
-
-const effectOper = (e: AlienEffect): void => {
-  let dep = e.deps_
-  while (dep) {
-    dep = unlink(dep, e)
-  }
-  const sub = e.subs_
-  if (sub) {
-    unlink(sub)
-  }
-  e.flags_ = 0 satisfies ReactiveFlags.None
-}
-
-const link = (dep: ReactiveNode, sub: ReactiveNode): void => {
-  const prevDep = sub.depsTail_
-  if (prevDep && prevDep.dep_ === dep) {
-    return
-  }
-  let nextDep: Link | undefined
-  const recursedCheck = sub.flags_ & (4 satisfies ReactiveFlags.RecursedCheck)
-  if (recursedCheck) {
-    nextDep = prevDep ? prevDep.nextDep_ : sub.deps_
-    if (nextDep && nextDep.dep_ === dep) {
-      sub.depsTail_ = nextDep
-      return
-    }
-  }
-  const prevSub = dep.subsTail_
-  if (
-    prevSub &&
-    prevSub.sub_ === sub &&
-    (!recursedCheck || isValidLink(prevSub, sub))
-  ) {
-    return
-  }
-  const newLink =
-    (sub.depsTail_ =
-    dep.subsTail_ =
-      {
-        dep_: dep,
-        sub_: sub,
-        prevDep_: prevDep,
-        nextDep_: nextDep,
-        prevSub_: prevSub,
-      })
-  if (nextDep) {
-    nextDep.prevDep_ = newLink
-  }
-  if (prevDep) {
-    prevDep.nextDep_ = newLink
-  } else {
-    sub.deps_ = newLink
-  }
-  if (prevSub) {
-    prevSub.nextSub_ = newLink
-  } else {
-    dep.subs_ = newLink
-  }
-}
-
-const unlink = (link: Link, sub_ = link.sub_): Link | undefined => {
-  const dep_ = link.dep_
-  const prevDep_ = link.prevDep_
-  const nextDep_ = link.nextDep_
-  const nextSub_ = link.nextSub_
-  const prevSub_ = link.prevSub_
-  if (nextDep_) {
-    nextDep_.prevDep_ = prevDep_
-  } else {
-    sub_.depsTail_ = prevDep_
-  }
-  if (prevDep_) {
-    prevDep_.nextDep_ = nextDep_
-  } else {
-    sub_.deps_ = nextDep_
-  }
-  if (nextSub_) {
-    nextSub_.prevSub_ = prevSub_
-  } else {
-    dep_.subsTail_ = prevSub_
-  }
-  if (prevSub_) {
-    prevSub_.nextSub_ = nextSub_
-  } else if (!(dep_.subs_ = nextSub_)) {
-    if ('getter' in dep_) {
-      let toRemove = dep_.deps_
-      if (toRemove) {
-        dep_.flags_ = 17 as ReactiveFlags.Mutable | ReactiveFlags.Dirty
-        do {
-          toRemove = unlink(toRemove, dep_)
-        } while (toRemove)
-      }
-    } else if (!('previousValue' in dep_)) {
-      effectOper(dep_ as AlienEffect)
-    }
-  }
-  return nextDep_
-}
-
-const propagate = (link: Link): void => {
-  let next = link.nextSub_
-  let stack: Stack<Link | undefined> | undefined
-
-  top: while (true) {
-    const sub = link.sub_
-
-    let flags = sub.flags_
-
-    if (flags & (3 as ReactiveFlags.Mutable | ReactiveFlags.Watching)) {
-      if (
-        !(
-          flags &
-          (60 as
-            | ReactiveFlags.RecursedCheck
-            | ReactiveFlags.Recursed
-            | ReactiveFlags.Dirty
-            | ReactiveFlags.Pending)
-        )
-      ) {
-        sub.flags_ = flags | (32 satisfies ReactiveFlags.Pending)
-      } else if (
-        !(flags & (12 as ReactiveFlags.RecursedCheck | ReactiveFlags.Recursed))
-      ) {
-        flags = 0 satisfies ReactiveFlags.None
-      } else if (!(flags & (4 satisfies ReactiveFlags.RecursedCheck))) {
-        sub.flags_ =
-          (flags & ~(8 satisfies ReactiveFlags.Recursed)) |
-          (32 satisfies ReactiveFlags.Pending)
-      } else if (
-        !(flags & (48 as ReactiveFlags.Dirty | ReactiveFlags.Pending)) &&
-        isValidLink(link, sub)
-      ) {
-        sub.flags_ =
-          flags | (40 as ReactiveFlags.Recursed | ReactiveFlags.Pending)
-        flags &= 1 satisfies ReactiveFlags.Mutable
-      } else {
-        flags = 0 satisfies ReactiveFlags.None
-      }
-
-      if (flags & (2 satisfies ReactiveFlags.Watching)) {
-        notify(sub as AlienEffect)
-      }
-
-      if (flags & (1 satisfies ReactiveFlags.Mutable)) {
-        const subSubs = sub.subs_
-        if (subSubs) {
-          link = subSubs
-          if (subSubs.nextSub_) {
-            stack = { value_: next, prev_: stack }
-            next = link.nextSub_
-          }
-          continue
-        }
-      }
-    }
-
-    if ((link = next!)) {
-      next = link.nextSub_
-      continue
-    }
-
-    while (stack) {
-      link = stack.value_!
-      stack = stack.prev_
-      if (link) {
-        next = link.nextSub_
-        continue top
-      }
-    }
-
-    break
-  }
-}
-
-const startTracking = (sub: ReactiveNode): void => {
-  sub.depsTail_ = undefined
-  sub.flags_ =
-    (sub.flags_ &
-      ~(56 as
-        | ReactiveFlags.Recursed
-        | ReactiveFlags.Dirty
-        | ReactiveFlags.Pending)) |
-    (4 satisfies ReactiveFlags.RecursedCheck)
-}
-
-const endTracking = (sub: ReactiveNode): void => {
-  const depsTail_ = sub.depsTail_
-  let toRemove = depsTail_ ? depsTail_.nextDep_ : sub.deps_
-  while (toRemove) {
-    toRemove = unlink(toRemove, sub)
-  }
-  sub.flags_ &= ~(4 satisfies ReactiveFlags.RecursedCheck)
-}
-
-const checkDirty = (link: Link, sub: ReactiveNode): boolean => {
-  let stack: Stack<Link> | undefined
-  let checkDepth = 0
-
-  top: while (true) {
-    const dep = link.dep_
-    const depFlags = dep.flags_
-
-    let dirty = false
-
-    if (sub.flags_ & (16 satisfies ReactiveFlags.Dirty)) {
-      dirty = true
-    } else if (
-      (depFlags & (17 as ReactiveFlags.Mutable | ReactiveFlags.Dirty)) ===
-      (17 as ReactiveFlags.Mutable | ReactiveFlags.Dirty)
-    ) {
-      if (update(dep as AlienSignal | AlienComputed)) {
-        const subs = dep.subs_!
-        if (subs.nextSub_) {
-          shallowPropagate(subs)
-        }
-        dirty = true
-      }
-    } else if (
-      (depFlags & (33 as ReactiveFlags.Mutable | ReactiveFlags.Pending)) ===
-      (33 as ReactiveFlags.Mutable | ReactiveFlags.Pending)
-    ) {
-      if (link.nextSub_ || link.prevSub_) {
-        stack = { value_: link, prev_: stack }
-      }
-      link = dep.deps_!
-      sub = dep
-      ++checkDepth
-      continue
-    }
-
-    if (!dirty && link.nextDep_) {
-      link = link.nextDep_
-      continue
-    }
-
-    while (checkDepth) {
-      --checkDepth
-      const firstSub = sub.subs_!
-      const hasMultipleSubs = firstSub.nextSub_
-      if (hasMultipleSubs) {
-        link = stack!.value_
-        stack = stack!.prev_
-      } else {
-        link = firstSub
-      }
-      if (dirty) {
-        if (update(sub as AlienSignal | AlienComputed)) {
-          if (hasMultipleSubs) {
-            shallowPropagate(firstSub)
-          }
-          sub = link.sub_
-          continue
-        }
-      } else {
-        sub.flags_ &= ~(32 satisfies ReactiveFlags.Pending)
-      }
-      sub = link.sub_
-      if (link.nextDep_) {
-        link = link.nextDep_
-        continue top
-      }
-      dirty = false
-    }
-
-    return dirty
-  }
-}
-
-const shallowPropagate = (link: Link): void => {
-  do {
-    const sub = link.sub_
-    const nextSub = link.nextSub_
-    const subFlags = sub.flags_
-    if (
-      (subFlags & (48 as ReactiveFlags.Pending | ReactiveFlags.Dirty)) ===
-      (32 satisfies ReactiveFlags.Pending)
-    ) {
-      sub.flags_ = subFlags | (16 satisfies ReactiveFlags.Dirty)
-      if (subFlags & (2 satisfies ReactiveFlags.Watching)) {
-        notify(sub as AlienEffect)
-      }
-    }
-    link = nextSub!
-  } while (link)
-}
-
-const isValidLink = (checkLink: Link, sub: ReactiveNode): boolean => {
-  const depsTail = sub.depsTail_
-  if (depsTail) {
-    let link = sub.deps_!
-    do {
-      if (link === checkLink) {
-        return true
-      }
-      if (link === depsTail) {
-        break
-      }
-      link = link.nextDep_!
-    } while (link)
-  }
-  return false
-}
+const peek = untrack
+const signal = createSignal
+// TODO: Maybe implement dispose for these, currently the computation runs no matter if it is used
+// But with Solid v2 memos will be lazy anyway, so we kinda can just wait for v2 instead...
+const computed = <T extends EffectFunction<any>>(fn: T) =>
+  runWithOwner(owner, () => createMemo(fn))!
+const effect = <T extends EffectFunction<any>>(fn: T) =>
+  createRoot((dispose) => {
+    createEffect(fn)
+    return dispose
+  }, owner)
 
 const getPath = <T = any>(path: string): T | undefined => {
   let result = root
@@ -591,111 +57,13 @@ const getPath = <T = any>(path: string): T | undefined => {
   return result as T
 }
 
+const deep = createMutable
+
 export const DELETE = Symbol('delete')
-const deep = (value: any, prefix = ''): any => {
-  const isArr = Array.isArray(value)
-  if (isArr || isPojo(value)) {
-    const deepObj = (isArr ? [] : {}) as Record<string, Signal>
-    for (const key in value) {
-      deepObj[key] = signal(
-        deep((value as Record<string, Signal>)[key], `${prefix + key}.`),
-      )
-    }
-    const keys = signal(0)
-    return new Proxy(deepObj, {
-      get(_, prop: string) {
-        if (!(prop === 'toJSON' && !Object.hasOwn(deepObj, prop))) {
-          if (isArr && prop in Array.prototype) {
-            keys()
-            return deepObj[prop]
-          } else {
-            if (typeof prop === 'symbol') {
-              return deepObj[prop]
-            }
-            if (!Object.hasOwn(deepObj, prop) || deepObj[prop]() == null) {
-              deepObj[prop] = signal('')
-              dispatch(prefix + prop, '')
-              keys(keys() + 1)
-            }
-            return deepObj[prop]()
-          }
-        }
-      },
-      set(_, prop: string, newValue) {
-        const path = prefix + prop
-        if (newValue === DELETE) {
-          if (Object.hasOwn(deepObj, prop)) {
-            delete deepObj[prop]
-            dispatch(path, DELETE)
-            keys(keys() + 1)
-          }
-        } else {
-          if (isArr && prop === 'length') {
-            const diff = (deepObj[prop] as unknown as number) - newValue
-            deepObj[prop] = newValue
-            if (diff > 0) {
-              const patch: Record<string, any> = {}
-              for (let i = newValue; i < deepObj[prop]; i++) {
-                patch[i] = null
-              }
-              dispatch(prefix.slice(0, -1), patch)
-              keys(keys() + 1)
-            }
-          } else {
-            if (Object.hasOwn(deepObj, prop)) {
-              if (newValue == null) {
-                if (deepObj[prop](null)) {
-                  dispatch(path, null)
-                }
-              } else {
-                if (Object.hasOwn(newValue, computedSymbol)) {
-                  deepObj[prop] = newValue
-                  dispatch(path, '')
-                } else {
-                  if (deepObj[prop](deep(newValue, `${path}.`))) {
-                    dispatch(path, newValue)
-                  }
-                }
-              }
-            } else {
-              if (newValue != null) {
-                if (Object.hasOwn(newValue, computedSymbol)) {
-                  deepObj[prop] = newValue
-                  dispatch(path, '')
-                } else {
-                  deepObj[prop] = signal(deep(newValue, `${path}.`))
-                  dispatch(path, newValue)
-                }
-                keys(keys() + 1)
-              }
-            }
-          }
-        }
 
-        return true
-      },
-      deleteProperty(_, prop: string) {
-        if (Object.hasOwn(deepObj, prop)) {
-          if (deepObj[prop](null)) {
-            dispatch(prefix + prop, null)
-          }
-        }
-
-        return true
-      },
-      ownKeys() {
-        keys()
-        return Reflect.ownKeys(deepObj)
-      },
-      has(_, prop) {
-        keys()
-        return prop in deepObj
-      },
-    })
-  }
-  return value
-}
-
+/*
+const currentPatch: Paths = []
+let batchDepth = 0
 const dispatch = (path?: string, value?: any) => {
   if (path !== undefined && value !== undefined) {
     currentPatch.push([path, value])
@@ -710,22 +78,26 @@ const dispatch = (path?: string, value?: any) => {
     )
   }
 }
+*/
+
+const startBatch: any = () => {}
+const endBatch: any = () => {}
 
 const mergePatch = (
   patch: JSONPatch,
   { ifMissing }: MergePatchArgs = {},
 ): void => {
-  startBatch()
-  for (const key in patch) {
-    if (patch[key] == null) {
-      if (!ifMissing) {
-        delete root[key]
+  batch(() => {
+    for (const key in patch) {
+      if (patch[key] == null) {
+        if (!ifMissing) {
+          delete root[key]
+        }
+      } else {
+        mergeInner(patch[key], key, root, '', ifMissing)
       }
-    } else {
-      mergeInner(patch[key], key, root, '', ifMissing)
     }
-  }
-  endBatch()
+  })
 }
 
 const mergePaths = (paths: Paths, options: MergePatchArgs = {}): void =>
@@ -764,7 +136,16 @@ const mergeInner = (
       }
     }
   } else if (!(ifMissing && Object.hasOwn(targetParent, target))) {
-    targetParent[target] = patch
+    if (typeof patch === 'function') {
+      // TODO: Computed signals currently cannot be overwritten!
+      // At the time of writing this is also the case in vanilla Datastar
+      Object.defineProperty(targetParent, target, {
+        get: patch,
+        enumerable: true,
+      })
+    } else {
+      targetParent[target] = patch
+    }
   }
 }
 
@@ -803,7 +184,10 @@ function toRegExp(val: string | RegExp): RegExp {
   return val
 }
 
-const root: Record<string, any> = deep({})
+const root: Record<string, any> = runWithOwner(owner, () =>
+  deep({}, { name: 'signals' }),
+)!
+export const signals = root
 
 /**
  * Turn data-* attributes into reactive expressions

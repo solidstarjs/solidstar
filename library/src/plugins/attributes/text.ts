@@ -13,7 +13,7 @@ export const Text: AttributePlugin = {
   onLoad: ({ el, effect, rx }) => {
     const update = () => {
       observer.disconnect()
-      el.textContent = `${rx()}`
+      el.textContent = `${rx() ?? ''}`
       observer.observe(el, {
         childList: true,
         characterData: true,

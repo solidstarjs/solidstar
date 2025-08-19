@@ -1,3 +1,4 @@
+import type { createSignal } from 'solid-js'
 import { DATASTAR } from './consts'
 export type PluginType = 'attribute' | 'watcher' | 'action'
 export type Requirement = 'allowed' | 'must' | 'denied' | 'exclusive'
@@ -73,7 +74,7 @@ export type InitContext = {
   actions: Readonly<ActionPlugins> // All registered actions
   root: Record<string, any> // global signals and computed signals
   filtered: (opts?: SignalFilterOptions, obj?: JSONPatch) => Record<string, any>
-  signal<T>(initialValue?: T | undefined): Signal<T> // creates a signal
+  signal: typeof createSignal // creates a signal
   computed<T>(getter: (previousValue?: T) => T): Computed<T> // creates a computed signal
   effect(fn: (...args: any[]) => void): OnRemovalFn // creates an effect
   mergePatch: (patch: JSONPatch, args?: MergePatchArgs) => void

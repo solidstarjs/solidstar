@@ -3,6 +3,6 @@ import { DSP } from '../engine/consts'
 // @ts-ignore
 const _ = DSP // This is to force the import of DSP first in the compiled code
 
-import { apply, load, setAlias } from './engine'
+import { apply, load, setAlias, signals } from './engine'
 
-export { apply, load, setAlias }
+export { apply, load, setAlias, signals }

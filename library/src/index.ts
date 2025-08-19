@@ -1,4 +1,4 @@
-import { apply, load, setAlias } from './engine'
+import { apply, load, setAlias, signals } from './engine'
 import { Peek } from './plugins/actions/peek'
 import { SetAll } from './plugins/actions/setAll'
 import { ToggleAll } from './plugins/actions/toggleAll'
@@ -13,7 +13,7 @@ import { On } from './plugins/attributes/on'
 import { OnIntersect } from './plugins/attributes/onIntersect'
 import { OnInterval } from './plugins/attributes/onInterval'
 import { OnLoad } from './plugins/attributes/onLoad'
-import { OnSignalPatch } from './plugins/attributes/onSignalPatch'
+import { OnSignalPatch } from './plugins/attributes/onSignalPatchDefunc'
 import { Ref } from './plugins/attributes/ref'
 import { Show } from './plugins/attributes/show'
 import { Signals } from './plugins/attributes/signals'
@@ -62,4 +62,4 @@ load(
 
 apply()
 
-export { apply, load, setAlias }
+export { apply, load, setAlias, signals }
