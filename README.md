@@ -22,6 +22,7 @@ Solidstar is an [almost](#differences--limitations) drop-in replacement of [Data
 ## Differences / Limitations
 
 - Solidstar currently does not support `data-on-signal-patch`.
+- Solidstar exports `signals`, a [mutable](https://docs.solidjs.com/reference/store-utilities/create-mutable) Store object containing all hypermedia-driven signals.
 - Datastar initializes undeclared signals with `""` on read. Solidstar instead just returns `undefined` for undeclared signals.
 
 ## Getting Started
