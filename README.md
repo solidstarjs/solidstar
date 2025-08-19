@@ -17,7 +17,7 @@ Solidstar is an [almost](#differences--limitations) drop-in replacement of [Data
 | Optimized for MPAs        | ✅                                                                                | ❌                                                                                    |
 | Bundler                   | 💲 [Proprietary](https://data-star.dev/reference/datastar_pro#bundler)            | ✅ vite, esbuild, etc.                                                                |
 | Debugging tool            | 💲 [Proprietary](https://data-star.dev/reference/datastar_pro#datastar-inspector) | ✅ [Solid Developer Tools](https://github.com/thetarnav/solid-devtools)               |
-| Available on npm          | ❌                                                                                | ✅                                                                                    |
+| Available on npm          | ❌                                                                                | ✅ [npm](https://www.npmjs.com/package/solidstar)                                     |
 
 ## Differences / Limitations
 
@@ -30,7 +30,7 @@ Solidstar is an [almost](#differences--limitations) drop-in replacement of [Data
 Getting started is as easy as adding a single 14.59 KiB script tag to your HTML.
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/gh/solidstarjs/solidstar@0.0.1/bundles/solidstar.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/solidstarjs/solidstar@0.1.0/bundles/solidstar.js"></script>
 ```
 
 Then start adding frontend reactivity using declarative <code>data-*</code> attributes.
