@@ -1,5 +1,11 @@
 # solidstar
 
+## 0.1.2
+
+### Patch Changes
+
+- eead9e5: Fixed a bug that prevented computed from being assigned with minified code.
+
 ## 0.1.1
 
 ### Patch Changes
