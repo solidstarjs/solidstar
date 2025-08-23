@@ -97,6 +97,8 @@ export type FetchArgs = {
   requestCancellation?: 'auto' | 'disabled' | AbortController
 }
 
+const __USE_UPLOAD_PROGRESS__ = true
+
 const fetcher = async (
   { el, evt, filtered, runtimeErr }: RuntimeContext,
   method: string,
