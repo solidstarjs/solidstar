@@ -4,15 +4,14 @@
 
 ### Datastar with SolidJS reactivity.
 
-Solidstar is an [almost](#differences--limitations) drop-in replacement of [Datastar](https://github.com/starfederation/datastar/) with [Solid](https://github.com/solidjs/solid) reactivity under the hood, enabling interoperability between hypermedia-driven frontend logic and Solid components. Learn more about the differences in the [comparison](#comparison-with-datastar).
+Solidstar is an [almost](#comparison-with-datastar) drop-in replacement of [Datastar](https://github.com/starfederation/datastar/) with [Solid](https://github.com/solidjs/solid) reactivity under the hood, enabling interoperability between hypermedia-driven frontend logic and Solid components.
 
-**[Quick Start](#quick-start) • [Stackblitz](https://stackblitz.com/github/solidstarjs/solidstar/tree/solid/template?file=index.tsx) • [npm](https://www.npmjs.com/package/solidstar) • [Guide](https://data-star.dev/guide) • [API Docs](https://data-star.dev/reference) • [Changelog](https://github.com/solidstarjs/solidstar/blob/solid/library/CHANGELOG.md) • [Discord](https://discord.gg/A9qH2xsb)**
+**[Quick Start](#quick-start) • [Stackblitz](https://stackblitz.com/github/solidstarjs/solidstar/tree/solid/template?file=index.tsx) • [Comparison](#comparison-with-datastar) •  [Guide](https://data-star.dev/guide) • [API Docs](https://data-star.dev/reference) • [Changelog](https://github.com/solidstarjs/solidstar/blob/solid/library/CHANGELOG.md) • [Discord](https://discord.gg/A9qH2xsb)**
 
 ## At a Glance
 
 ```tsx
-index.tsx:
-
+// index.tsx
 import { customElement } from "solid-element";
 import { signals } from "solidstar";
 
@@ -21,15 +20,15 @@ customElement("my-counter", () => (
 ));
 ```
 
+`index.html`
 ```html
-index.html:
-
 <script type="module" src="index.tsx"></script>
 <div data-signals-count="0" data-text="$count"></div>
 <my-counter></my-counter>
 ```
 
-Try it out in [Stackblitz](https://stackblitz.com/github/solidstarjs/solidstar/tree/solid/template?file=index.tsx)!
+> [!TIP]
+> Try it out on [Stackblitz](https://stackblitz.com/github/solidstarjs/solidstar/tree/solid/template?file=index.tsx)!
 
 ## Quick Start
 
@@ -42,28 +41,62 @@ npm run dev
 
 ### CDN
 
-> [!WARNING]  
+> [!NOTE]  
 > Use [Datastar](https://github.com/starfederation/datastar/) directly instead, if you do not need Solid components!
 
 ```html
 <script type="module" src="https://cdn.jsdelivr.net/gh/solidstarjs/solidstar@0.1.0/bundles/solidstar.js"></script>
 ```
 
+### Customizing the bundle
+
+Import `solidstar/core` instead of `solidstar` to optimize your bundle.
+
+```tsx
+export * from "solidstar/core";
+import { load } from "solidstar/core";
+import * as Plugins from "solidstar/plugins";
+
+// Specify the plugins you want
+load(
+  Plugins.Class,
+  Plugins.Signals, 
+  Plugins.Text
+);
+```
+
+> [!TIP]
+> Try it out on https://bundlejs.com!
+
 ## Comparison with Datastar
 
-|                                                                                                  | Datastar                                                                                                         | Solidstar                                                                                                              |
-| ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Size (Gzipped)                                                                                   | 10.7 KiB                                                                                                         | 14.7 KiB                                                                                                               |
-| Solid interoperability                                                                           | ❌                                                                                                                | ✅                                                                                                                      |
-| Read & Write access to signals                                                                   | Use a [plugin](https://github.com/sudeep9/datastar-plugins?tab=readme-ov-file#datastar-signalsjs)                | `import { signals } from "solidstar"`                                                                                  |
-| Latest signals technology                                                                        | ✅ (Alien signals)                                                                                                | ⏸️ [Work-in-progress](https://github.com/solidjs/signals)                                                               |
-| Supports [data-on-signal-patch](https://data-star.dev/reference/attributes#data-on-signal-patch) | ✅                                                                                                                | ❌ (Currently)                                                                                                          |
-| Optimized for MPAs                                                                               | ✅                                                                                                                | ❌                                                                                                                      |
-| Recommended component helpers                                                                    | ⏸️ Work-in-progress (ion)                                                                                         | [Solid](https://docs.solidjs.com/), [Solid Element](https://github.com/solidjs/solid/tree/main/packages/solid-element) |
-| Visual online bundler                                                                            | 💲 [Proprietary](https://data-star.dev/reference/datastar_pro#bundler)                                            | ❌ vite, esbuild, etc.                                                                                                  |
-| Advanced debugging tool                                                                          | 💲 [Proprietary](https://data-star.dev/reference/datastar_pro#datastar-inspector) <br /> Optimized for hypermedia | [Solid Developer Tools](https://github.com/thetarnav/solid-devtools) <br />Optimized for Solid components              |
-| Available on npm                                                                                 | ❌ (Do it yourself)                                                                                               | ✅ [npm](https://www.npmjs.com/package/solidstar)                                                                       |
+| Subject                                                                                          | Datastar                                                                                                                  | Solidstar                                                                                                              |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Size (Gzipped)                                                                                   | 10.7 KiB                                                                                                                  | 14.7 KiB                                                                                                               |
+| Solid interoperability                                                                           | ❌                                                                                                                         | ✅                                                                                                                      |
+| Read & Write access to signals                                                                   | Use a [plugin](https://github.com/sudeep9/datastar-plugins?tab=readme-ov-file#datastar-signalsjs)                         | `import { signals } from "solidstar"`                                                                                  |
+| Recommended component helpers                                                                    | ⏸️ Work-in-progress (ion)                                                                                                  | [Solid](https://docs.solidjs.com/), [Solid Element](https://github.com/solidjs/solid/tree/main/packages/solid-element) |
+| Recommended install method                                                                       | No bundler, Local copy, CDN                                                                                               | [npm](https://www.npmjs.com/package/solidstar), **bundler required** for Solid components                              |
+| Bundle customization                                                                             | 💲 [Bundler](https://data-star.dev/reference/datastar_pro#bundler)                                                         | [Learn how](#customizing-the-bundle)                                                                                   |
+| Advanced debugging tool                                                                          | 💲 [Datastar Inspector](https://data-star.dev/reference/datastar_pro#datastar-inspector) <br /> *Optimized for hypermedia* | [Solid Developer Tools](https://github.com/thetarnav/solid-devtools) <br />*Optimized for Solid components*            |
+| Latest signals technology                                                                        | ✅ (Alien signals)                                                                                                         | ⏸️ [Work-in-progress](https://github.com/solidjs/signals)                                                               |
+| Computed's run lazily                                                                            | ✅                                                                                                                         | ❌                                                                                                                      |
+| Supports [data-on-signal-patch](https://data-star.dev/reference/attributes#data-on-signal-patch) | ✅                                                                                                                         | ❌ (Currently)                                                                                                          |
+| Optimized for MPAs                                                                               | ✅                                                                                                                         | ❌                                                                                                                      |
 
-### Differences / Limitations
 
-- Datastar initializes undeclared signals with `""` on read. Solidstar instead just returns `undefined` for undeclared signals.
+### Differences when accessing undefined signals
+
+Solidstar's `signals` object is based on Solid's [createMutable](https://docs.solidjs.com/reference/store-utilities/create-mutable). Accessing undefined signals behaves slightly different compared to Datastar's implementation:
+
+| Code                 | Datastar     | Solidstar    |
+| -------------------- | ------------ | ------------ |
+| `$null`              | `""`         | `undefined`  |
+| `$null.length`       | `0`          | Throws error |
+| `$null.title.length` | Throws error | Throws error |
+
+> [!TIP]
+> Use the [optional chaining](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining) operator to prevent errors when accessing optional signals:
+> ```ts
+> $null?.title?.length
+> ```
