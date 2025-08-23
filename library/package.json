@@ -42,18 +42,19 @@
     }
   },
   "scripts": {
-    "build": "cp ../README.md . && pnpm build:main && pnpm build:core && pnpm build:aliased && tsc",
+    "build": "pnpm build:main && pnpm build:core && pnpm build:aliased && tsc",
     "build:main": "esbuild src/index.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar.js",
     "build:core": "esbuild src/core.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar-core.js",
     "build:aliased": "esbuild src/aliased.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar-aliased.js",
     "dev": "vite examples",
-    "bump": "changeset version && pnpm build",
+    "bump": "changeset version && node bumpVersion.js && cp ../README.md . && pnpm build",
     "release": "changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.6",
     "@types/node": "^24.3.0",
     "esbuild": "^0.25.9",
+    "replace-in-file": "^8.3.0",
     "solid-devtools": "^0.34.3",
     "solid-element": "^1.9.1",
     "terser": "^5.43.1",
