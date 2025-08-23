@@ -80,6 +80,14 @@ const dispatch = (path?: string, value?: any) => {
 }
 */
 
+let $NODE: any = undefined
+const getNode = (target: any) => {
+  $NODE ??= Object.getOwnPropertySymbols(target).find(
+    (s) => s.description === 'store-node',
+  )
+  return target[$NODE]
+}
+
 const startBatch: any = () => {}
 const endBatch: any = () => {}
 
@@ -137,8 +145,17 @@ const mergeInner = (
     }
   } else if (!(ifMissing && Object.hasOwn(targetParent, target))) {
     if (typeof patch === 'function') {
-      // TODO: Computed signals currently cannot be overwritten!
-      // At the time of writing this is also the case in vanilla Datastar
+      // Delete underlying signal in Solid store and inform listeners
+      // "delete targetParent[target]" is not good enough: https://github.com/solidjs/solid/issues/1559
+      const node = getNode(targetParent)
+      if (node[target] != null) {
+        node[target].$()
+        delete node[target]
+      }
+
+      // Computeds are deliberately readonly
+      // Related chat in Datastar community:
+      // https://discord.com/channels/1296224603642925098/1299058221390102528/1408523922818994227
       Object.defineProperty(targetParent, target, {
         get: patch,
         enumerable: true,
