@@ -12,7 +12,7 @@
   "devDependencies": {
     "solid-element": "^1.9.1",
     "solid-js": "^1.9.9",
-    "solidstar": "^0.1.0",
+    "solidstar": "^0.1.1",
     "typescript": "^5.9.2",
     "vite": "^7.1.3",
     "vite-plugin-solid": "^2.11.8"
