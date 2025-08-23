@@ -39,6 +39,8 @@ const signal = createSignal
 // But with Solid v2 memos will be lazy anyway, so we kinda can just wait for v2 instead...
 const computed = <T extends EffectFunction<any>>(fn: T) =>
   runWithOwner(owner, () => createMemo(fn))!
+const computedName = 'bound readSignal'
+
 const effect = <T extends EffectFunction<any>>(fn: T) =>
   createRoot((dispose) => {
     createEffect(fn)
@@ -144,7 +146,7 @@ const mergeInner = (
       }
     }
   } else if (!(ifMissing && Object.hasOwn(targetParent, target))) {
-    if (typeof patch === 'function') {
+    if (typeof patch === 'function' && patch.name === computedName) {
       // Delete underlying signal in Solid store and inform listeners
       // "delete targetParent[target]" is not good enough: https://github.com/solidjs/solid/issues/1559
       const node = getNode(targetParent)
