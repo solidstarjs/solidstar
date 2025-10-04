@@ -16,6 +16,7 @@ import type {
   RuntimeContext,
   RuntimeExpressionFunction,
   SignalFilterOptions,
+  Signals,
 } from './types'
 import {
   createSignal,
@@ -207,7 +208,7 @@ function toRegExp(val: string | RegExp): RegExp {
   return val
 }
 
-const root: Record<string, any> = runWithOwner(owner, () =>
+const root: Signals = runWithOwner(owner, () =>
   deep({}, { name: 'signals' }),
 )!
 export const signals = root

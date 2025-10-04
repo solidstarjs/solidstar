@@ -69,10 +69,14 @@ export type MergePatchArgs = {
   ifMissing?: boolean
 }
 
+export interface Signals {
+  [key: string]: any;
+}
+
 export type InitContext = {
   plugin: DatastarPlugin // The plugin instance
   actions: Readonly<ActionPlugins> // All registered actions
-  root: Record<string, any> // global signals and computed signals
+  root: Signals // global signals and computed signals
   filtered: (opts?: SignalFilterOptions, obj?: JSONPatch) => Record<string, any>
   signal: typeof createSignal // creates a signal
   computed<T>(getter: (previousValue?: T) => T): Computed<T> // creates a computed signal

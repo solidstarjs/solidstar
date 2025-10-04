@@ -68,13 +68,30 @@ load(
 > [!TIP]
 > Try it out on https://bundlejs.com!
 
+### Extending the signals type
+
+You can use Typescript declaration merging, to declare available signals in your app.
+
+```ts
+declare module "solidstar" {
+  interface Signals {
+    count: number;
+    optionalText?: string;
+    foo: {
+      bar: number;
+    }
+  }
+}
+```
+
 ## Comparison with Datastar
 
 | Subject                                                                                          | Datastar                                                                                                                  | Solidstar                                                                                                              |
 | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | Size (Gzipped)                                                                                   | 10.7 KiB                                                                                                                  | 14.7 KiB                                                                                                               |
 | Solid interoperability                                                                           | ❌                                                                                                                         | ✅                                                                                                                      |
-| Read & Write access to signals                                                                   | Use a [plugin](https://github.com/sudeep9/datastar-plugins?tab=readme-ov-file#datastar-signalsjs)                         | `import { signals } from "solidstar"`                                                                                  |
+| Access signals via import                                                                        | Use a [plugin](https://github.com/sudeep9/datastar-plugins?tab=readme-ov-file#datastar-signalsjs)                         | `import { signals } from "solidstar"`                                                                                  |
+| Extendable signals type                                                                          | ❌                                                                                                                         | [Learn how](#extending-the-signals-type)                                                                               |
 | Recommended component helpers                                                                    | ⏸️ Work-in-progress (ion)                                                                                                  | [Solid](https://docs.solidjs.com/), [Solid Element](https://github.com/solidjs/solid/tree/main/packages/solid-element) |
 | Recommended install method                                                                       | No bundler, Local copy, CDN                                                                                               | [npm](https://www.npmjs.com/package/solidstar), **bundler required** for Solid components                              |
 | Bundle customization                                                                             | 💲 [Bundler](https://data-star.dev/reference/datastar_pro#bundler)                                                         | [Learn how](#customizing-the-bundle)                                                                                   |

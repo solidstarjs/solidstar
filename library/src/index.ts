@@ -63,3 +63,4 @@ load(
 apply()
 
 export { apply, load, setAlias, signals }
+export type { Signals } from "./engine/types"
