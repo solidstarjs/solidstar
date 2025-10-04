@@ -1,5 +1,11 @@
 # solidstar
 
+## 0.2.0
+
+### Minor Changes
+
+- 6298388: The `signals` object can now be typed via declaration merging.
+
 ## 0.1.2
 
 ### Patch Changes
