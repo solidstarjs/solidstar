@@ -1,5 +1,11 @@
 # solidstar
 
+## 0.2.1
+
+### Patch Changes
+
+- 0e79e3e: The `FetchArgs` type can now be imported via `solidstar/plugins`.
+
 ## 0.2.0
 
 ### Minor Changes
