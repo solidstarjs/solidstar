@@ -18,6 +18,7 @@ import { Show } from '../plugins/attributes/show'
 import { Signals } from '../plugins/attributes/signals'
 import { Style } from '../plugins/attributes/style'
 import { Text } from '../plugins/attributes/text'
+import type { FetchArgs } from '../plugins/backend/actions/fetch'
 import { DELETE } from '../plugins/backend/actions/delete'
 import { GET } from '../plugins/backend/actions/get'
 import { PATCH } from '../plugins/backend/actions/patch'
@@ -58,3 +59,4 @@ export {
   SetAll,
   ToggleAll,
 }
+export type { FetchArgs }
