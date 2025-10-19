@@ -46,9 +46,9 @@ const computed = <T extends EffectFunction<any>>(fn: T) =>
   })!
 const $COMPUTED = Symbol('computed')
 
-const effect = <T extends EffectFunction<any>>(fn: T) =>
+const effect = (fn: () => void) =>
   createRoot((dispose) => {
-    createEffect(fn)
+    createEffect(() => fn())
     return dispose
   }, owner)
 
