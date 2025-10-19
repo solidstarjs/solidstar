@@ -1,5 +1,11 @@
 # solidstar
 
+## 0.2.2
+
+### Patch Changes
+
+- 502b6ca: Fixed actions throwing an `xyz is not a function` error in `data-effect`.
+
 ## 0.2.1
 
 ### Patch Changes
