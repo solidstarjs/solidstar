@@ -7,3 +7,12 @@ library/src/bundles/datastar-pro*
 library/src/plugins/pro
 template/pnpm-lock.yaml
 node_modules
+
+site
+tmp
+build
+docker-compose.yml
+go.*
+biome.json
+Dockerfile
+data
