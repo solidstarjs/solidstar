@@ -1,5 +1,12 @@
 # solidstar
 
+## 0.3.0
+
+### Minor Changes
+
+- 697f211: The `signal` API now uses the same interface as in Datastar.
+- 799dea9: Upgraded the core to Datastar [v1.0.0-RC.6](https://github.com/starfederation/datastar/releases/tag/v1.0.0-RC.6).
+
 ## 0.2.2
 
 ### Patch Changes

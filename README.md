@@ -45,7 +45,7 @@ npm run dev
 > Use [Datastar](https://github.com/starfederation/datastar/) directly instead, if you do not need Solid components!
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/gh/solidstarjs/solidstar@0.2.2/bundles/solidstar.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/solidstarjs/solidstar@0.3.0/bundles/solidstar.js"></script>
 ```
 
 ## Customizing the bundle
