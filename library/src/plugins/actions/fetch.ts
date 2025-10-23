@@ -486,7 +486,7 @@ const fetchEventSource = (
       document.addEventListener('visibilitychange', onVisibilityChange)
     }
 
-    let retryTimer = 0
+    let retryTimer: NodeJS.Timeout | number = 0
     const dispose = () => {
       document.removeEventListener('visibilitychange', onVisibilityChange)
       clearTimeout(retryTimer)

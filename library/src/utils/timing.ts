@@ -18,7 +18,7 @@ export const debounce = (
   leading = false,
   trailing = true,
 ): EventCallbackHandler => {
-  let timer = 0
+  let timer: NodeJS.Timeout | number = 0
   return (...args: any[]) => {
     timer && clearTimeout(timer)
 
