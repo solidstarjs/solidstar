@@ -2,36 +2,24 @@
 // Slug: Runs an expression when signals are patched.
 // Description: Runs an expression whenever one or more signals are patched.
 
-import {
-  type AttributePlugin,
-  DATASTAR_SIGNAL_PATCH_EVENT,
-  type JSONPatch,
-  type SignalFilterOptions,
-} from '../../engine/types'
-import { isEmpty } from '../../utils/paths'
-import { jsStrToObject } from '../../utils/text'
-import { modifyTiming } from '../../utils/timing'
+import { attribute } from '@engine'
+import { DATASTAR_SIGNAL_PATCH_EVENT } from '@engine/consts'
+import { beginBatch, endBatch, filtered } from '@engine/signals'
+import type { JSONPatch, SignalFilterOptions } from '@engine/types'
+import { isEmpty } from '@utils/paths'
+import { jsStrToObject } from '@utils/text'
+import { modifyTiming } from '@utils/timing'
 
-export const OnSignalPatch: AttributePlugin = {
-  type: 'attribute',
-  name: 'onSignalPatch',
-  valReq: 'must',
+attribute({
+  name: 'on-signal-patch',
+  requirement: {
+    value: 'must',
+  },
   argNames: ['patch'],
   returnsValue: true,
-  onLoad: ({
-    el,
-    key,
-    mods,
-    plugin,
-    rx,
-    filtered,
-    runtimeErr,
-    startBatch,
-    endBatch,
-  }) => {
-    // Throw an error if the key exists and is not `filter`
+  apply({ el, key, mods, rx, error }) {
     if (!!key && key !== 'filter') {
-      throw runtimeErr(`${plugin.name}KeyNotAllowed`)
+      throw error('KeyNotAllowed')
     }
 
     // Look for data-on-signal-patch-filter data attribute
@@ -45,7 +33,7 @@ export const OnSignalPatch: AttributePlugin = {
       (evt: CustomEvent<JSONPatch>) => {
         const watched = filtered(filters, evt.detail)
         if (!isEmpty(watched)) {
-          startBatch()
+          beginBatch()
           rx(watched)
           endBatch()
         }
@@ -58,4 +46,4 @@ export const OnSignalPatch: AttributePlugin = {
       document.removeEventListener(DATASTAR_SIGNAL_PATCH_EVENT, callback)
     }
   },
-}
+})

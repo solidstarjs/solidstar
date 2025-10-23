@@ -2,15 +2,17 @@
 // Slug: Runs an expression when signals are patched.
 // Description: Runs an expression whenever one or more signals are patched.
 
-import type { AttributePlugin } from '../../engine/types'
+import { attribute } from '@engine'
+import { NO_SUPPORT } from '@engine/consts'
 
-export const OnSignalPatch: AttributePlugin = {
-  type: 'attribute',
-  name: 'onSignalPatch',
-  valReq: 'must',
+attribute({
+  name: 'on-signal-patch',
+  requirement: {
+    value: 'must',
+  },
   argNames: ['patch'],
   returnsValue: true,
-  onLoad: ({ runtimeErr }) => {
-    throw runtimeErr(`data-on-signal-patch is currently not supported!`)
+  apply({ error }) {
+    throw error(NO_SUPPORT)
   },
-}
+})

@@ -23,7 +23,7 @@ customElement("my-counter", () => (
 `index.html`
 ```html
 <script type="module" src="index.tsx"></script>
-<div data-signals-count="0" data-text="$count"></div>
+<div data-signals:count="0" data-text="$count"></div>
 <my-counter></my-counter>
 ```
 
@@ -48,22 +48,17 @@ npm run dev
 <script type="module" src="https://cdn.jsdelivr.net/gh/solidstarjs/solidstar@0.2.2/bundles/solidstar.js"></script>
 ```
 
-### Customizing the bundle
+## Customizing the bundle
 
-Import `solidstar/core` instead of `solidstar` to optimize your bundle.
+To optimize the bundle, import `solidstar/core` instead of `solidstar` and import the plugins of your choice:
 
-```tsx
+```ts
 export * from "solidstar/core";
-import { load } from "solidstar/core";
-import * as Plugins from "solidstar/plugins";
-
-// Specify the plugins you want
-load(
-  Plugins.Class,
-  Plugins.Signals, 
-  Plugins.Text
-);
-```
+import "solidstar/plugins/attributes/class";
+import "solidstar/plugins/attributes/signals";
+import "solidstar/plugins/attributes/text";
+import "solidstar/plugins/watchers/patchElements";
+import "solidstar/plugins/watchers/patchSignals";
 
 > [!TIP]
 > Try it out on https://bundlejs.com!
@@ -84,13 +79,27 @@ declare module "solidstar" {
 }
 ```
 
+### Setting a custom attribute alias
+
+To use a custom [attribute alias](https://data-star.dev/reference/attributes#aliasing-attributes), define a global `SOLIDSTAR_ALIAS` constant in your bundler like so:
+
+```ts
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  define: {
+    // Use data-star-* instead of data-* attributes
+    "SOLIDSTAR_ALIAS": "'star'"
+  },
+});
+```
+
 ## Comparison with Datastar
 
 | Subject                                                                                          | Datastar                                                                                                                  | Solidstar                                                                                                              |
 | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Size (Gzipped)                                                                                   | 10.7 KiB                                                                                                                  | 14.7 KiB                                                                                                               |
+| Size (Gzipped)                                                                                   | 10.23 KiB                                                                                                                 | 13.8 KiB                                                                                                               |
 | Solid interoperability                                                                           | ❌                                                                                                                         | ✅                                                                                                                      |
-| Access signals via import                                                                        | Use a [plugin](https://github.com/sudeep9/datastar-plugins?tab=readme-ov-file#datastar-signalsjs)                         | `import { signals } from "solidstar"`                                                                                  |
 | Extendable signals type                                                                          | ❌                                                                                                                         | [Learn how](#extending-the-signals-type)                                                                               |
 | Recommended component helpers                                                                    | ⏸️ Work-in-progress (ion)                                                                                                  | [Solid](https://docs.solidjs.com/), [Solid Element](https://github.com/solidjs/solid/tree/main/packages/solid-element) |
 | Recommended install method                                                                       | No bundler, Local copy, CDN                                                                                               | [npm](https://www.npmjs.com/package/solidstar), **bundler required** for Solid components                              |
@@ -101,8 +110,9 @@ declare module "solidstar" {
 | Supports [data-on-signal-patch](https://data-star.dev/reference/attributes#data-on-signal-patch) | ✅                                                                                                                         | ❌ (Currently)                                                                                                          |
 | Optimized for MPAs                                                                               | ✅                                                                                                                         | ❌                                                                                                                      |
 
+## Differences
 
-### Differences when accessing undefined signals
+### Accessing undefined signals
 
 Solidstar's `signals` object is based on Solid's [createMutable](https://docs.solidjs.com/reference/store-utilities/create-mutable). Accessing undefined signals behaves slightly different compared to Datastar's implementation:
 
@@ -117,3 +127,41 @@ Solidstar's `signals` object is based on Solid's [createMutable](https://docs.so
 > ```ts
 > $null?.title?.length
 > ```
+
+### Plugin API: beginBatch, endBatch
+
+Solidstar does not support the `beginBatch` and `endBatch` plugin API functions, instead you have to use `batch`:
+
+```ts
+// Datastar
+import { root, beginBatch, endBatch } from "/datastar.js";
+beginBatch();
+root.count = 1;
+root.text = "hello world";
+endBatch();
+
+// Solidstar
+import { root, batch } from "solidstar";
+batch(() => {
+  root.count = 1;
+  root.text = "hello world";
+});
+```
+
+### Plugin API: startPeeking, stopPeeking
+
+Solidstar does not support the `startPeeking` and `stopPeeking` plugin API functions, instead you have to use `peek`:
+
+```ts
+// Datastar
+import { root, startPeeking, stopPeeking } from "/datastar.js";
+startPeeking();
+console.log(root.count);
+stopPeeking();
+
+// Solidstar
+import { root, peek } from "solidstar";
+peek(() => {
+  console.log(root.count);
+});
+```

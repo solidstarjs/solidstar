@@ -32,9 +32,18 @@
       "import": "./dist/aliased.js",
       "types": "./dist/aliased.d.ts"
     },
-    "./plugins": {
-      "import": "./dist/plugins/index.js",
-      "types": "./dist/plugins/index.d.ts"
+    "./plugins/": "./dist/plugins/",
+    "./plugins/actions/*": {
+      "import": "./dist/plugins/actions/*.js",
+      "types": "./dist/plugins/actions/*.d.ts"
+    },
+    "./plugins/attributes/*": {
+      "import": "./dist/plugins/attributes/*.js",
+      "types": "./dist/plugins/attributes/*.d.ts"
+    },
+    "./plugins/watchers/*": {
+      "import": "./dist/plugins/watchers/*.js",
+      "types": "./dist/plugins/watchers/*.d.ts"
     },
     "./types": {
       "import": "./dist/engine/types.js",
@@ -42,10 +51,10 @@
     }
   },
   "scripts": {
-    "build": "pnpm build:main && pnpm build:core && pnpm build:aliased && tsc",
-    "build:main": "esbuild src/index.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar.js",
-    "build:core": "esbuild src/core.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar-core.js",
-    "build:aliased": "esbuild src/aliased.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar-aliased.js",
+    "build": "pnpm build:main && pnpm build:core && pnpm build:aliased && tsc && tsc-alias",
+    "build:main": "esbuild src/index.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar.js --define:SOLIDSTAR_ALIAS=null",
+    "build:core": "esbuild src/core.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar-core.js --define:SOLIDSTAR_ALIAS=null",
+    "build:aliased": "esbuild src/aliased.ts --bundle --format=esm --minify --sourcemap --outfile=../bundles/solidstar-aliased.js --define:SOLIDSTAR_ALIAS='star'",
     "dev": "vite examples",
     "bump": "changeset version && node bumpVersion.js && cp ../README.md . && pnpm build",
     "release": "changeset publish"
@@ -58,6 +67,7 @@
     "solid-devtools": "^0.34.3",
     "solid-element": "^1.9.1",
     "terser": "^5.43.1",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.9.2",
     "vite": "^7.1.3",
     "vite-plugin-solid": "^2.11.8"

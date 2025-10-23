@@ -1,10 +1,10 @@
-import type { EventCallbackHandler, Modifiers } from '../engine/types'
-import { tagHas, tagToMs } from './tags'
+import type { EventCallbackHandler, Modifiers } from '@engine/types'
+import { tagHas, tagToMs } from '@utils/tags'
 
-export function delay(
+export const delay = (
   callback: EventCallbackHandler,
   wait: number,
-): EventCallbackHandler {
+): EventCallbackHandler => {
   return (...args: any[]) => {
     setTimeout(() => {
       callback(...args)
@@ -12,12 +12,12 @@ export function delay(
   }
 }
 
-export function debounce(
+export const debounce = (
   callback: EventCallbackHandler,
   wait: number,
   leading = false,
   trailing = true,
-): EventCallbackHandler {
+): EventCallbackHandler => {
   let timer = 0
   return (...args: any[]) => {
     timer && clearTimeout(timer)
@@ -31,16 +31,17 @@ export function debounce(
         callback(...args)
       }
       timer && clearTimeout(timer)
+      timer = 0
     }, wait)
   }
 }
 
-export function throttle(
+export const throttle = (
   callback: EventCallbackHandler,
   wait: number,
   leading = true,
   trailing = false,
-): EventCallbackHandler {
+): EventCallbackHandler => {
   let waiting = false
 
   return (...args: any[]) => {
@@ -52,18 +53,18 @@ export function throttle(
 
     waiting = true
     setTimeout(() => {
-      waiting = false
       if (trailing) {
         callback(...args)
       }
+      waiting = false
     }, wait)
   }
 }
 
-export function modifyTiming(
+export const modifyTiming = (
   callback: EventCallbackHandler,
   mods: Modifiers,
-): EventCallbackHandler {
+): EventCallbackHandler => {
   const delayArgs = mods.get('delay')
   if (delayArgs) {
     const wait = tagToMs(delayArgs)
@@ -74,7 +75,7 @@ export function modifyTiming(
   if (debounceArgs) {
     const wait = tagToMs(debounceArgs)
     const leading = tagHas(debounceArgs, 'leading', false)
-    const trailing = !tagHas(debounceArgs, 'notrail', false)
+    const trailing = !tagHas(debounceArgs, 'notrailing', false)
     callback = debounce(callback, wait, leading, trailing)
   }
 
@@ -82,7 +83,7 @@ export function modifyTiming(
   if (throttleArgs) {
     const wait = tagToMs(throttleArgs)
     const leading = !tagHas(throttleArgs, 'noleading', false)
-    const trailing = tagHas(throttleArgs, 'trail', false)
+    const trailing = tagHas(throttleArgs, 'trailing', false)
     callback = throttle(callback, wait, leading, trailing)
   }
 

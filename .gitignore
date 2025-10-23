@@ -5,6 +5,7 @@ bundles/datastar-pro*
 library/README.md
 library/src/bundles/datastar-pro*
 library/src/plugins/pro
+library/dist
 template/pnpm-lock.yaml
 node_modules
 

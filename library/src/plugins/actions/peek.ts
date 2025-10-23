@@ -2,12 +2,12 @@
 // Slug: Access signals without subscribing to changes.
 // Description: Allows accessing signals without subscribing to their changes in expressions.
 
-import type { ActionPlugin } from '../../engine/types'
+import { action } from '@engine'
+import { peek } from '@engine/signals'
 
-export const Peek: ActionPlugin = {
-  type: 'action',
+action({
   name: 'peek',
-  fn: ({ peek }, fn: () => any) => {
+  apply(_, fn: () => any) {
     return peek(fn)
   },
-}
+})
