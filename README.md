@@ -64,22 +64,6 @@ import "solidstar/plugins/watchers/patchSignals";
 > [!TIP]
 > Try it out on https://bundlejs.com!
 
-### Extending the signals type
-
-You can use Typescript declaration merging, to declare available signals in your app.
-
-```ts
-declare module "solidstar" {
-  interface Signals {
-    count: number;
-    optionalText?: string;
-    foo: {
-      bar: number;
-    }
-  }
-}
-```
-
 ### Setting a custom attribute alias
 
 To use a custom [attribute alias](https://data-star.dev/reference/attributes#aliasing-attributes), define a global `SOLIDSTAR_ALIAS` constant in your bundler like so:
@@ -93,6 +77,22 @@ export default defineConfig({
     "SOLIDSTAR_ALIAS": "'star'"
   },
 });
+```
+
+## Extending the signals type
+
+You can use Typescript declaration merging, to declare available signals in your app.
+
+```ts
+declare module "solidstar" {
+  interface Signals {
+    count: number;
+    optionalText?: string;
+    foo: {
+      bar: number;
+    }
+  }
+}
 ```
 
 ## Comparison with Datastar
