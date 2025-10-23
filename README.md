@@ -59,6 +59,7 @@ import "solidstar/plugins/attributes/signals";
 import "solidstar/plugins/attributes/text";
 import "solidstar/plugins/watchers/patchElements";
 import "solidstar/plugins/watchers/patchSignals";
+```
 
 > [!TIP]
 > Try it out on https://bundlejs.com!
